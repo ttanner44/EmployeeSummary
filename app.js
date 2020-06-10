@@ -1,7 +1,9 @@
+const Employee = require("./lib/Employee");
 const Manager = require("./lib/Manager");
 const Engineer = require("./lib/Engineer");
 const Intern = require("./lib/Intern");
 const inquirer = require("inquirer");
+const util = require("util");
 const path = require("path");
 const fs = require("fs");
 
@@ -9,6 +11,7 @@ const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
+const writeFileAsync = util.promisify(fs.writeFile);
 
 
 // Write code to use inquirer to gather information about the development team members,
@@ -102,63 +105,56 @@ function promptManager() {
     ]);
   }
 
-let employee = "";
+let employee = [];
 let allDone = 0;
 console.log(allDone);
 
-do {
+  
+function prompt () {
+
+  do {
+
+    allDone = allDone + 1;
+
     promptUser().then(function(employeeType) {
-        AllDone = AllDone + 1;
-        console.log(allDone);
-        if (employeeType.role === "Manager") {
-            promptManager().then(function(managerAnswers) {
-            let manager = new Manager (managerAnswers.name, managerAnswers.id, manager.Answers.email, managerAnswers.officeNumber);
-            employee.push (manager);
-            console.log(managerAnswers);
-            console.log(allDone);
-            });
+      
+      switch (employeeType.role) {
         
-        } else if (employeeType.role === "Intern") {
-            promptIntern().then(function(internAnswers) {
-            let intern = new Intern (internAnswers.name, internAnswers.id, internAnswers.email, internAnswers.school);
-            employee.push (intern);
-            console.log(internAnswers);    
-            console.log(allDone);
-            });
+        case "Manager": 
+          promptManager().then(function(managerAnswers) {
+            employee.push (new Manager (managerAnswers.name, managerAnswers.id, managerAnswers.email, managerAnswers.officeNumber));
+            console.log(employee); 
+            }) 
+            break;
 
-        } else if (employeeType.role === "Engineer") {
-            promptEngineer().then(function(engineerAnswers) {
-            let engineer = new Engineer (engineerAnswers.name, engineerAnswers.id, engineerAnswers.email, engineerAnswers.github);
-            employee.push (engineer);
-            console.log(engineerAnswers);
-            console.log(allDone);
-            });
+        case "Intern": 
+          promptIntern().then(function(internAnswers) {
+            employee.push (new Intern (internAnswers.name, internAnswers.id, internAnswers.email, internAnswers.school));
+            console.log(employee);
+            })
+            break;
 
-        } else {
-            allDone = 10;
-            console.log(allDone);
-            console.log("All Done");
-        }
+        case "Engineer": 
+          promptEngineer().then(function(engineerAnswers) {
+            employee.push (new Engineer (engineerAnswers.name, engineerAnswers.id, engineerAnswers.email, engineerAnswers.github));
+            console.log(employee);
+            }) 
+            break;
+          
+        default:
+          allDone = 10;
+          console.log(employee)
+      }
     });
-} while (allDone < 10);
 
+  } while (allDone < 10);
 
-// After the user has input all employees desired, call the `render` function (required
-// above) and pass in an array containing all employee objects; the `render` function will
-// generate and return a block of HTML including templated divs for each employee!
+}
 
-// After you have your html, you're now ready to create an HTML file using the HTML
-// returned from the `render` function. Now write it to a file named `team.html` in the
-// `output` folder. You can use the variable `outputPath` above target this location.
-// Hint: you may need to check if the `output` folder exists and create it if it
-// does not.
+prompt ();
 
-// HINT: each employee type (manager, engineer, or intern) has slightly different
-// information; write your code to ask different questions via inquirer depending on
-// employee type.
+module.exports = employee;
 
-// HINT: make sure to build out your classes first! Remember that your Manager, Engineer,
-// and Intern classes should all extend from a class named Employee; see the directions
-// for further information. Be sure to test out each class and verify it generates an
-// object with the correct structure and methods. This structure will be crucial in order
-// for the provided `render` function to work! ```
+// htmlRenderer (employee);
+
+// writeFileAsync(outputPath, html);
