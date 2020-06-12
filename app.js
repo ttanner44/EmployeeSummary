@@ -1,3 +1,4 @@
+// Initiating required files
 const Employee = require("./lib/Employee");
 const Manager = require("./lib/Manager");
 const Engineer = require("./lib/Engineer");
@@ -6,18 +7,12 @@ const inquirer = require("inquirer");
 const util = require("util");
 const path = require("path");
 const fs = require("fs");
-
-const OUTPUT_DIR = path.resolve(__dirname, "output");
-const outputPath = path.join(OUTPUT_DIR, "team.html");
-
 const render = require("./lib/htmlRenderer");
+
+// Promisify writeFileAsync
 const writeFileAsync = util.promisify(fs.writeFile);
 
-
-// Write code to use inquirer to gather information about the development team members,
-// and to create objects for each team member (using the correct classes as blueprints!)
-
-
+// Initial prompt "What type of employee?"
 function promptUser() {
     return inquirer.prompt([
         {
@@ -29,6 +24,7 @@ function promptUser() {
     ]);
 }
 
+// Questions if a Manager
 function promptManager() {
     return inquirer.prompt ([
         {
@@ -54,6 +50,7 @@ function promptManager() {
     ]);
   }
 
+  // Questions if an Engineer
   function promptEngineer() {
     return inquirer.prompt ([
         {
@@ -78,8 +75,8 @@ function promptManager() {
           },
     ]);
   }
-
   
+  // Questions if an Intern
   function promptIntern() {
     return inquirer.prompt ([
         {
@@ -99,62 +96,61 @@ function promptManager() {
           },
           {
             type: "input",
-            name: "github",
+            name: "school",
             message: "Where is the Intern going to school?"
           },
     ]);
   }
 
+// Initiating employee array
 let employee = [];
-let allDone = 0;
-console.log(allDone);
-
   
+// Main Function
 function prompt () {
 
-  do {
-
-    allDone = allDone + 1;
-
+    // Prompt for initial 
     promptUser().then(function(employeeType) {
       
+
+      // Switch initiates the righ type questions depending upon employee type
       switch (employeeType.role) {
         
+        // Initiaties Manager Questions; then pushes answers to employee array; then re-initiates prompt function
         case "Manager": 
           promptManager().then(function(managerAnswers) {
             employee.push (new Manager (managerAnswers.name, managerAnswers.id, managerAnswers.email, managerAnswers.officeNumber));
-            console.log(employee); 
+            prompt(); 
             }) 
             break;
 
+        // Initiaties Intern Questions; then pushes answers to employee array; then re-initiates prompt function
         case "Intern": 
           promptIntern().then(function(internAnswers) {
             employee.push (new Intern (internAnswers.name, internAnswers.id, internAnswers.email, internAnswers.school));
-            console.log(employee);
-            })
+            prompt(); 
+            }) 
             break;
 
+        // Initiaties Engineer Questions; then pushes answers to employee array; then re-initiates prompt function      
         case "Engineer": 
           promptEngineer().then(function(engineerAnswers) {
             employee.push (new Engineer (engineerAnswers.name, engineerAnswers.id, engineerAnswers.email, engineerAnswers.github));
-            console.log(employee);
+            prompt(); 
             }) 
             break;
-          
+
+        // All done with employees; initiate HTML call and write file.   
         default:
-          allDone = 10;
-          console.log(employee)
+          const employeeHtml = render (employee);
+          writeFileAsync(path.join(__dirname, "./output/team.html"), employeeHtml)
+          .catch ((err)=> {
+          });
       }
     });
-
-  } while (allDone < 10);
-
 }
 
+// Initial call of the function
 prompt ();
 
 module.exports = employee;
 
-// htmlRenderer (employee);
-
-// writeFileAsync(outputPath, html);
